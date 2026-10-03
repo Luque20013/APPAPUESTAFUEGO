@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#040508" />
+  <title>🔥🦁 TEAM FUEGO · Marcador Berlín</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Teko:wght@600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+  <canvas id="fireCanvas"></canvas>
+
+  <div class="topbar">
+    <button id="btnAdmin" class="pill" onclick="toggleAdmin()">👑 Admin</button>
+  </div>
+
+  <div class="app-shell">
+    <header class="arena-header">
+      <svg class="lion" viewBox="0 0 200 200" role="img" aria-label="León de fuego, emblema de Team Fuego">
+          <defs>
+            <linearGradient id="gFlame" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fff3b0"/><stop offset=".35" stop-color="#ffb02e"/>
+              <stop offset=".75" stop-color="#ff4d12"/><stop offset="1" stop-color="#b71c00"/>
+            </linearGradient>
+            <radialGradient id="gFace" cx=".5" cy=".4" r=".7">
+              <stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#e2731a"/>
+            </radialGradient>
+            <path id="fl" d="M100 4 C114 28 124 40 100 72 C76 40 86 28 100 4Z"/>
+          </defs>
+          <g class="mane">
+            <g fill="url(#gFlame)" opacity=".55" transform="rotate(15 100 100)">
+              <use href="#fl"/><use href="#fl" transform="rotate(30 100 100)"/><use href="#fl" transform="rotate(60 100 100)"/>
+              <use href="#fl" transform="rotate(90 100 100)"/><use href="#fl" transform="rotate(120 100 100)"/><use href="#fl" transform="rotate(150 100 100)"/>
+              <use href="#fl" transform="rotate(180 100 100)"/><use href="#fl" transform="rotate(210 100 100)"/><use href="#fl" transform="rotate(240 100 100)"/>
+              <use href="#fl" transform="rotate(270 100 100)"/><use href="#fl" transform="rotate(300 100 100)"/><use href="#fl" transform="rotate(330 100 100)"/>
+            </g>
+            <g fill="url(#gFlame)">
+              <use href="#fl"/><use href="#fl" transform="rotate(30 100 100)"/><use href="#fl" transform="rotate(60 100 100)"/>
+              <use href="#fl" transform="rotate(90 100 100)"/><use href="#fl" transform="rotate(120 100 100)"/><use href="#fl" transform="rotate(150 100 100)"/>
+              <use href="#fl" transform="rotate(180 100 100)"/><use href="#fl" transform="rotate(210 100 100)"/><use href="#fl" transform="rotate(240 100 100)"/>
+              <use href="#fl" transform="rotate(270 100 100)"/><use href="#fl" transform="rotate(300 100 100)"/><use href="#fl" transform="rotate(330 100 100)"/>
+            </g>
+          </g>
+          <circle cx="68" cy="66" r="13" fill="#e2731a"/><circle cx="132" cy="66" r="13" fill="#e2731a"/>
+          <circle cx="68" cy="66" r="6" fill="#7a2a08"/><circle cx="132" cy="66" r="6" fill="#7a2a08"/>
+          <ellipse cx="100" cy="102" rx="44" ry="46" fill="url(#gFace)"/>
+          <path d="M72 88 L90 94 L74 98Z M128 88 L110 94 L126 98Z" fill="#2a0d04"/>
+          <circle cx="82" cy="93" r="2.4" fill="#ffcf40"/><circle cx="118" cy="93" r="2.4" fill="#ffcf40"/>
+          <ellipse cx="100" cy="118" rx="22" ry="17" fill="#ffe3ad"/>
+          <path d="M91 106 H109 L100 117Z" fill="#3a1206"/>
+          <path d="M100 117 V126 M100 126 Q92 133 85 127 M100 126 Q108 133 115 127" stroke="#3a1206" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        </svg>
+      <h1 class="arena-title">TEAM FUEGO</h1>
+      <a href="https://maps.app.goo.gl/j4iLVUUAToinSwPp7?g_st=iw" target="_blank" rel="noopener noreferrer" class="cancha-link-badge">📍 CANCHA BERLÍN · MAPA 🗺️</a>
+      <p class="arena-sub">Martes y Viernes • 8:00 a 10:00 PM</p>
+      <div class="tardanza-pill">⚠️ Pasado las 8:15 PM se cobra S/ 2.00 de tardanza</div>
+      <div class="author-badge">⚡ Hecho por Justin Luque · 2026</div>
+    </header>
+
+    <nav class="tab-matrix">
+      <button class="tab-nav active" id="btnTab1" onclick="switchArenaMode('colosseum')">🦁 3 Equipos (Ronda)</button>
+      <button class="tab-nav" id="btnTab2" onclick="switchArenaMode('headhunt')">⚔️ Por Cabeza (Individual)</button>
+    </nav>
+
+    <!-- MODO 1: 3 EQUIPOS -->
+    <main class="screen active" id="screenColosseum">
+
+      <section class="arena-card public-only" id="cWaiting" style="text-align:center;">
+        <span class="field-tag">Marcador en vivo</span>
+        <p class="vs-prompt">Todavía no arranca el triangular. Cuando un admin lo inicie, verás aquí los partidos y las cuentas en tiempo real.</p>
+      </section>
+
+      <section class="arena-card admin-only" id="cSetup">
+        <span class="field-tag">Bolsa por Partido en Juego (S/)</span>
+        <input type="number" id="cBetVal" value="20" min="1" step="0.5" />
+        <span class="field-tag">Nombres de Legiones</span>
+        <input type="text" id="cTeamA" maxlength="24" placeholder="Equipo 1 (ej. 🔥 TEAM FUEGO)" />
+        <input type="text" id="cTeamB" maxlength="24" placeholder="Equipo 2 (ej. Los Gladiadores)" />
+        <input type="text" id="cTeamC" maxlength="24" placeholder="Equipo 3 (ej. Los Titanes)" />
+        <button class="btn-epic" onclick="launchTournament()">COMENZAR EL FUEGO 🔥</button>
+      </section>
+
+      <section class="arena-card" id="cMatchArena" style="display:none; text-align:center;">
+        <div class="hud-badge" id="cHudRound">Ronda 1 · Batalla 1/3</div>
+        <div class="steps" id="cSteps" aria-hidden="true"><i></i><i></i><i></i></div>
+        <p class="vs-prompt admin-only">¿Qué león se lleva el botín de este set?</p>
+        <p class="vs-prompt public-only"><span class="live-dot"></span> En juego ahora</p>
+
+        <div class="versus-colosseum">
+          <span class="vs-chip">VS</span>
+          <button class="gladiator-btn" id="g1">
+            <span class="lion-avatar">🦁</span>
+            <span class="team-name" id="cName1">--</span>
+            <span class="win-tag">🏆 Reclamar Corona</span>
+          </button>
+          <button class="gladiator-btn" id="g2">
+            <span class="lion-avatar">🦁</span>
+            <span class="team-name" id="cName2">--</span>
+            <span class="win-tag">🏆 Reclamar Corona</span>
+          </button>
+        </div>
+
+        <div class="resting-pod" id="cRestPod">En guardia (Descansa): <b>--</b></div>
+        <button class="btn-undo admin-only" id="btnUndo" onclick="deshacerUltimo()">↩️ Deshacer último set</button>
+      </section>
+
+      <section class="arena-card" id="cStandings" style="display:none;">
+        <div class="section-top">
+          <span class="field-tag">Tabla de posiciones</span>
+          <button class="btn-reset admin-only" onclick="resetTournament()">🔄 Reiniciar todo</button>
+        </div>
+        <table class="war-table">
+          <thead>
+            <tr><th>Legión</th><th>PJ</th><th>PG</th><th>PP</th><th style="text-align:right;">Bolsa (S/)</th></tr>
+          </thead>
+          <tbody id="cTableBody"></tbody>
+        </table>
+
+        <span class="field-tag" style="margin-top:1.1rem;">Últimos partidos</span>
+        <ul class="log-list" id="cLog"></ul>
+
+        <button class="btn-wa-share admin-only" onclick="compartirTablaWhatsApp()">📲 Compartir marcador por WhatsApp</button>
+      </section>
+    </main>
+
+    <!-- MODO 2: INDIVIDUAL / REFUERZOS -->
+    <main class="screen" id="screenHeadhunt">
+
+      <section class="arena-card admin-only">
+        <div class="headhunt-config-grid">
+          <div>
+            <span class="field-tag">Pena set perdido (S/)</span>
+            <input type="number" id="pFee" value="3" min="0.5" step="0.5" />
+          </div>
+          <div>
+            <span class="field-tag">Multa tardanza (S/)</span>
+            <input type="number" id="pLateFee" value="2" min="0" step="0.5" />
+          </div>
+        </div>
+        <span class="field-tag">Inscribir refuerzo / jugador</span>
+        <div style="display:flex; gap:.5rem;">
+          <input type="text" id="pInputName" maxlength="24" placeholder="Nombre o apodo" style="margin-bottom:0;" />
+          <button class="btn-epic" style="width:auto; padding:.75rem 1.3rem; font-size:1.1rem;" onclick="enlistPlayer()" aria-label="Agregar jugador">+</button>
+        </div>
+      </section>
+
+      <section class="arena-card admin-only">
+        <span class="field-tag">Control de sets y tardanzas</span>
+        <div id="groupPanel"></div>
+        <div id="playerRoster"></div>
+      </section>
+
+      <section class="arena-card">
+        <div class="section-top">
+          <span class="field-tag">Liquidación final (DEBE / GANA)</span>
+          <button class="btn-reset admin-only" onclick="resetSoldiers()">🔄 Reiniciar cuentas</button>
+        </div>
+        <p class="fee-info" id="pFeeInfo"></p>
+        <table class="war-table">
+          <thead>
+            <tr><th>Jugador</th><th>Sets (G/P)</th><th>Tardanza</th><th style="text-align:right;">Estado final</th></tr>
+          </thead>
+          <tbody id="pTableReport"></tbody>
+        </table>
+        <button class="btn-wa-share admin-only" onclick="compartirRefuerzosWhatsApp()">📲 Compartir liquidación por WhatsApp</button>
+      </section>
+    </main>
+
+    <footer>
+      <p class="footer-credits">🦁 APP de <span>Justin Luque</span> · Team Fuego</p>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="script.js"></script>
+</body>
+</html>
