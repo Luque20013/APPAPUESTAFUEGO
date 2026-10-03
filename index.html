@@ -11,11 +11,13 @@
   <link rel="stylesheet" href="style.css" />
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 </head>
 <body>
   <canvas id="fireCanvas"></canvas>
 
   <div class="topbar">
+    <a class="pill" href="lista/" style="text-decoration:none">📋 Lista</a>
     <button id="btnAdmin" class="pill" onclick="toggleAdmin()">👑 Admin</button>
   </div>
 
@@ -177,6 +179,35 @@
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="script.js"></script>
+  <script>
+  // Inicio de sesión anónimo: la app carga solo cuando Firebase ya dio permiso
+  (function () {
+    firebase.initializeApp({
+  apiKey: "AIzaSyC5FKtlCWyec1AxAfwegrxcJyTlR7fLMiE",
+  authDomain: "team-fuego-voley.firebaseapp.com",
+  databaseURL: "https://team-fuego-voley-default-rtdb.firebaseio.com",
+  projectId: "team-fuego-voley",
+  storageBucket: "team-fuego-voley.firebasestorage.app",
+  messagingSenderId: "327602190796",
+  appId: "1:327602190796:web:651f3cc662eaa4942f0569",
+  measurementId: "G-NST7Q054NZ"
+});
+    var cargado = false;
+    firebase.auth().onAuthStateChanged(function (u) {
+      if (u) {
+        if (cargado) return;
+        cargado = true;
+        var s = document.createElement('script');
+        s.src = 'script.js';
+        document.body.appendChild(s);
+      } else {
+        firebase.auth().signInAnonymously().catch(function (e) {
+          console.error(e);
+          alert('No se pudo conectar. Recarga la página.');
+        });
+      }
+    });
+  })();
+  </script>
 </body>
 </html>

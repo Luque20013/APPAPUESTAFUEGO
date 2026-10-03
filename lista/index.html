@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0504">
+  <title>Team Fuego · Lista Oficial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="fire-glow"></div>
+  <div class="embers"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+  <nav class="topbar">
+    <button id="btn-admin" class="pill" onclick="toggleAdmin()">👑 Admin</button>
+    <a class="pill" href="../" style="text-decoration:none">🏆 Marcador</a>
+    <button id="btn-music" class="pill" onclick="toggleMusica()">🎵 Beat: <span id="music-status">OFF</span></button>
+  </nav>
+
+  <div class="layout">
+    <aside class="side">
+      <section class="panel">
+        <h3>Reglas del equipo</h3>
+        <ul>
+          <li>⏰ Calentamiento 7:55 PM</li>
+          <li>🚨 Pasadas las 8:15 PM, multa de S/ 2.00</li>
+          <li>⚡ Sin check verde a las 2:00 PM, sales y Yape manda</li>
+          <li>🎯 Posiciones fijas</li>
+          <li>🤝 Acá se alienta, no se resta</li>
+        </ul>
+      </section>
+    </aside>
+
+    <main class="card">
+      <header class="hero">
+        <svg class="lion" viewBox="0 0 200 200" role="img" aria-label="León de fuego, emblema de Team Fuego">
+          <defs>
+            <linearGradient id="gFlame" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fff3b0"/><stop offset=".35" stop-color="#ffb02e"/>
+              <stop offset=".75" stop-color="#ff4d12"/><stop offset="1" stop-color="#b71c00"/>
+            </linearGradient>
+            <radialGradient id="gFace" cx=".5" cy=".4" r=".7">
+              <stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#e2731a"/>
+            </radialGradient>
+            <path id="fl" d="M100 4 C114 28 124 40 100 72 C76 40 86 28 100 4Z"/>
+          </defs>
+          <g class="mane">
+            <g fill="url(#gFlame)" opacity=".55" transform="rotate(15 100 100)">
+              <use href="#fl"/><use href="#fl" transform="rotate(30 100 100)"/><use href="#fl" transform="rotate(60 100 100)"/>
+              <use href="#fl" transform="rotate(90 100 100)"/><use href="#fl" transform="rotate(120 100 100)"/><use href="#fl" transform="rotate(150 100 100)"/>
+              <use href="#fl" transform="rotate(180 100 100)"/><use href="#fl" transform="rotate(210 100 100)"/><use href="#fl" transform="rotate(240 100 100)"/>
+              <use href="#fl" transform="rotate(270 100 100)"/><use href="#fl" transform="rotate(300 100 100)"/><use href="#fl" transform="rotate(330 100 100)"/>
+            </g>
+            <g fill="url(#gFlame)">
+              <use href="#fl"/><use href="#fl" transform="rotate(30 100 100)"/><use href="#fl" transform="rotate(60 100 100)"/>
+              <use href="#fl" transform="rotate(90 100 100)"/><use href="#fl" transform="rotate(120 100 100)"/><use href="#fl" transform="rotate(150 100 100)"/>
+              <use href="#fl" transform="rotate(180 100 100)"/><use href="#fl" transform="rotate(210 100 100)"/><use href="#fl" transform="rotate(240 100 100)"/>
+              <use href="#fl" transform="rotate(270 100 100)"/><use href="#fl" transform="rotate(300 100 100)"/><use href="#fl" transform="rotate(330 100 100)"/>
+            </g>
+          </g>
+          <circle cx="68" cy="66" r="13" fill="#e2731a"/><circle cx="132" cy="66" r="13" fill="#e2731a"/>
+          <circle cx="68" cy="66" r="6" fill="#7a2a08"/><circle cx="132" cy="66" r="6" fill="#7a2a08"/>
+          <ellipse cx="100" cy="102" rx="44" ry="46" fill="url(#gFace)"/>
+          <path d="M72 88 L90 94 L74 98Z M128 88 L110 94 L126 98Z" fill="#2a0d04"/>
+          <circle cx="82" cy="93" r="2.4" fill="#ffcf40"/><circle cx="118" cy="93" r="2.4" fill="#ffcf40"/>
+          <ellipse cx="100" cy="118" rx="22" ry="17" fill="#ffe3ad"/>
+          <path d="M91 106 H109 L100 117Z" fill="#3a1206"/>
+          <path d="M100 117 V126 M100 126 Q92 133 85 127 M100 126 Q108 133 115 127" stroke="#3a1206" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        </svg>
+        <h1>TEAM <em>FUEGO</em></h1>
+        <p class="hero-sub">Vóley · Martes y Viernes · 8:00 a 10:00 PM</p>
+        <a class="cancha" href="https://maps.app.goo.gl/j4iLVUUAToinSwPp7?g_st=iw" target="_blank" rel="noopener noreferrer">📍 Cancha Berlín <b>Ver mapa</b></a>
+      </header>
+
+      <div class="timer">
+        <span id="countdown-label" class="timer-label">Estado de la convocatoria</span>
+        <span id="countdown-timer" class="timer-num">Calculando horario...</span>
+      </div>
+
+      <div class="cupos-head"><span>Cupos asegurados</span><strong id="cupos-count">0 / 18</strong></div>
+      <div class="bar"><div id="cupos-bar"></div></div>
+      <div id="slots" class="slots" aria-label="Mapa de cupos"></div>
+
+      <form id="player-form" onsubmit="registrarJugador(event)">
+        <input type="text" id="player-name" class="field" maxlength="24" placeholder="Tu nombre, apodo o chapa" autocomplete="off" required>
+        <select id="player-pos" class="field" required>
+          <option value="" disabled selected>Elige tu posición fija</option>
+          <option value="Armador">Armador</option>
+          <option value="Punta">Punta</option>
+          <option value="Opuesto">Opuesto</option>
+          <option value="Central">Central</option>
+          <option value="Defensa">Defensa</option>
+        </select>
+        <button type="submit" id="btn-submit" class="btn-main">⚡ Asegurar mi cupo</button>
+      </form>
+
+      <h2 class="section-title">Jugadores confirmados</h2>
+      <div id="players-container"><p class="empty">Cargando lista en vivo...</p></div>
+
+      <section class="pay">
+        <h2>Pago previo · S/ 3.40</h2>
+        <p class="pay-warn">Hasta las 2:00 PM del día del juego. Sin check verde, sales de la lista y Yape manda.</p>
+        <div class="qr-grid">
+          <div class="qr">
+            <p>Yape Angelo</p>
+            <img src="imagen.png" alt="QR de Yape de Angelo">
+            <a class="btn-wa" href="https://wa.me/51946639126?text=Hola%20Angelo,%20aquí%20te%20mando%20mi%20voucher%20para%20la%20pichanga%20de%20Team%20Fuego%20🏐🔥" target="_blank" rel="noopener noreferrer">📲 946 639 126</a>
+          </div>
+          <div class="qr">
+            <p>Yape Yulisa</p>
+            <img src="imagen2.png" alt="QR de Yape de Yulisa">
+            <a class="btn-wa" href="https://wa.me/51996723629?text=Hola%20Yulisa,%20aquí%20te%20mando%20mi%20voucher%20para%20la%20pichanga%20de%20Team%20Fuego%20🏐🔥" target="_blank" rel="noopener noreferrer">📲 996 723 629</a>
+          </div>
+        </div>
+        <p class="pay-sub">Toca el número, manda tu captura y recibe tu check ✅</p>
+      </section>
+
+      <section id="admin-panel" class="admin" hidden>
+        <p>👑 Modo admin activo</p>
+        <button class="admin-btn" onclick="compartirWhatsAppAdmin()">📲 Enviar convocatoria por WhatsApp</button>
+        <button class="admin-btn" onclick="compartirListaWhatsApp()">📋 Compartir la lista actual</button>
+        <button class="admin-btn amber" onclick="notificarPendientesWhatsAppAdmin()">📢 Cobrar a los que faltan yapear</button>
+        <button class="admin-btn red" onclick="depurarSinPagoAdmin()">🧹 Sacar a los que no han yapeado</button>
+        <button class="admin-btn dark" onclick="limpiarListaAdmin()">🗑️ Limpiar toda la lista</button>
+        <button class="admin-btn dark" onclick="toggleAdmin()">🔒 Salir del modo admin</button>
+      </section>
+    </main>
+
+    <aside class="side">
+      <section class="panel">
+        <h3>Modalidad</h3>
+        <p><b>Posición fija.</b> Sin rotación general: cada uno defiende y ataca en su posición.</p>
+        <p><b>Cero apatía.</b> Venimos a sudar, apoyarnos en cada punto y divertirnos.</p>
+        <p class="tip">✅ Check verde = cupo fijo. La lista se limpia sola después de cada partido.</p>
+      </section>
+    </aside>
+  </div>
+
+  <audio id="bg-audio" loop preload="none">
+    <source src="musica.mp3" type="audio/mp3">
+    <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=sport-electro-115316.mp3" type="audio/mp3">
+  </audio>
+
+  <script>
+  // Inicio de sesión anónimo: la app carga solo cuando Firebase ya dio permiso
+  (function () {
+    firebase.initializeApp({
+  apiKey: "AIzaSyC5FKtlCWyec1AxAfwegrxcJyTlR7fLMiE",
+  authDomain: "team-fuego-voley.firebaseapp.com",
+  databaseURL: "https://team-fuego-voley-default-rtdb.firebaseio.com",
+  projectId: "team-fuego-voley",
+  storageBucket: "team-fuego-voley.firebasestorage.app",
+  messagingSenderId: "327602190796",
+  appId: "1:327602190796:web:651f3cc662eaa4942f0569",
+  measurementId: "G-NST7Q054NZ"
+});
+    var cargado = false;
+    firebase.auth().onAuthStateChanged(function (u) {
+      if (u) {
+        if (cargado) return;
+        cargado = true;
+        var s = document.createElement('script');
+        s.src = 'app.js';
+        document.body.appendChild(s);
+      } else {
+        firebase.auth().signInAnonymously().catch(function (e) {
+          console.error(e);
+          alert('No se pudo conectar. Recarga la página.');
+        });
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
