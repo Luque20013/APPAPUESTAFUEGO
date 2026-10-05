@@ -420,7 +420,7 @@ function limpiarListaAdmin() {
 // ==========================================================================
 // MENSAJES DE WHATSAPP
 // ==========================================================================
-const LINK_LISTA = 'https://luque20013.github.io/TEAM-FUEGO-APPS/lista/';
+const LINK_LISTA = 'https://luque20013.github.io/APPAPUESTAFUEGO/lista/;
 const LINK_MAPA = 'https://maps.app.goo.gl/j4iLVUUAToinSwPp7?g_st=iw';
 
 function proximoPartido() {
