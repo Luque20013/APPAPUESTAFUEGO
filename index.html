@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#040508" />
-  <title>🔥🦁 TEAM FUEGO · Marcador Berlín</title>
+  <title>❄️🔥 ICEFIRE · Marcador</title>
+  <link rel="icon" type="image/webp" href="logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Teko:wght@600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
@@ -12,6 +13,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="config.js"></script>
 </head>
 <body>
   <canvas id="fireCanvas"></canvas>
@@ -23,49 +25,16 @@
 
   <div class="app-shell">
     <header class="arena-header">
-      <svg class="lion" viewBox="0 0 200 200" role="img" aria-label="León de fuego, emblema de Team Fuego">
-          <defs>
-            <linearGradient id="gFlame" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#fff3b0"/><stop offset=".35" stop-color="#ffb02e"/>
-              <stop offset=".75" stop-color="#ff4d12"/><stop offset="1" stop-color="#b71c00"/>
-            </linearGradient>
-            <radialGradient id="gFace" cx=".5" cy=".4" r=".7">
-              <stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#e2731a"/>
-            </radialGradient>
-            <path id="fl" d="M100 4 C114 28 124 40 100 72 C76 40 86 28 100 4Z"/>
-          </defs>
-          <g class="mane">
-            <g fill="url(#gFlame)" opacity=".55" transform="rotate(15 100 100)">
-              <use href="#fl"/><use href="#fl" transform="rotate(30 100 100)"/><use href="#fl" transform="rotate(60 100 100)"/>
-              <use href="#fl" transform="rotate(90 100 100)"/><use href="#fl" transform="rotate(120 100 100)"/><use href="#fl" transform="rotate(150 100 100)"/>
-              <use href="#fl" transform="rotate(180 100 100)"/><use href="#fl" transform="rotate(210 100 100)"/><use href="#fl" transform="rotate(240 100 100)"/>
-              <use href="#fl" transform="rotate(270 100 100)"/><use href="#fl" transform="rotate(300 100 100)"/><use href="#fl" transform="rotate(330 100 100)"/>
-            </g>
-            <g fill="url(#gFlame)">
-              <use href="#fl"/><use href="#fl" transform="rotate(30 100 100)"/><use href="#fl" transform="rotate(60 100 100)"/>
-              <use href="#fl" transform="rotate(90 100 100)"/><use href="#fl" transform="rotate(120 100 100)"/><use href="#fl" transform="rotate(150 100 100)"/>
-              <use href="#fl" transform="rotate(180 100 100)"/><use href="#fl" transform="rotate(210 100 100)"/><use href="#fl" transform="rotate(240 100 100)"/>
-              <use href="#fl" transform="rotate(270 100 100)"/><use href="#fl" transform="rotate(300 100 100)"/><use href="#fl" transform="rotate(330 100 100)"/>
-            </g>
-          </g>
-          <circle cx="68" cy="66" r="13" fill="#e2731a"/><circle cx="132" cy="66" r="13" fill="#e2731a"/>
-          <circle cx="68" cy="66" r="6" fill="#7a2a08"/><circle cx="132" cy="66" r="6" fill="#7a2a08"/>
-          <ellipse cx="100" cy="102" rx="44" ry="46" fill="url(#gFace)"/>
-          <path d="M72 88 L90 94 L74 98Z M128 88 L110 94 L126 98Z" fill="#2a0d04"/>
-          <circle cx="82" cy="93" r="2.4" fill="#ffcf40"/><circle cx="118" cy="93" r="2.4" fill="#ffcf40"/>
-          <ellipse cx="100" cy="118" rx="22" ry="17" fill="#ffe3ad"/>
-          <path d="M91 106 H109 L100 117Z" fill="#3a1206"/>
-          <path d="M100 117 V126 M100 126 Q92 133 85 127 M100 126 Q108 133 115 127" stroke="#3a1206" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-        </svg>
-      <h1 class="arena-title">TEAM FUEGO</h1>
-      <a href="https://maps.app.goo.gl/j4iLVUUAToinSwPp7?g_st=iw" target="_blank" rel="noopener noreferrer" class="cancha-link-badge">📍 CANCHA BERLÍN · MAPA 🗺️</a>
-      <p class="arena-sub">Martes y Viernes • 8:00 a 10:00 PM</p>
-      <div class="tardanza-pill">⚠️ Pasado las 8:15 PM se cobra S/ 2.00 de tardanza</div>
+      <img class="lion" src="logo.webp" alt="IceFire · Vóley mixto" width="132" height="132" />
+      <h1 class="arena-title">ICEFIRE</h1>
+      <a id="cfg-cancha-main" class="cancha-link-badge"></a>
+      <p class="arena-sub" id="cfg-horario-main"></p>
+      <div class="tardanza-pill" id="cfg-tardanza-main"></div>
       <div class="author-badge">⚡ Hecho por Justin Luque · 2026</div>
     </header>
 
     <nav class="tab-matrix">
-      <button class="tab-nav active" id="btnTab1" onclick="switchArenaMode('colosseum')">🦁 3 Equipos (Ronda)</button>
+      <button class="tab-nav active" id="btnTab1" onclick="switchArenaMode('colosseum')">🐉 3 Equipos (Ronda)</button>
       <button class="tab-nav" id="btnTab2" onclick="switchArenaMode('headhunt')">⚔️ Por Cabeza (Individual)</button>
     </nav>
 
@@ -81,27 +50,27 @@
         <span class="field-tag">Bolsa por Partido en Juego (S/)</span>
         <input type="number" id="cBetVal" value="20" min="1" step="0.5" />
         <span class="field-tag">Nombres de Legiones</span>
-        <input type="text" id="cTeamA" maxlength="24" placeholder="Equipo 1 (ej. 🔥 TEAM FUEGO)" />
-        <input type="text" id="cTeamB" maxlength="24" placeholder="Equipo 2 (ej. Los Gladiadores)" />
-        <input type="text" id="cTeamC" maxlength="24" placeholder="Equipo 3 (ej. Los Titanes)" />
+        <input type="text" id="cTeamA" maxlength="24" placeholder="Equipo 1 (ej. 🔥 FUEGO)" />
+        <input type="text" id="cTeamB" maxlength="24" placeholder="Equipo 2 (ej. ❄️ HIELO)" />
+        <input type="text" id="cTeamC" maxlength="24" placeholder="Equipo 3 (ej. ⚡ TRUENO)" />
         <button class="btn-epic" onclick="launchTournament()">COMENZAR EL FUEGO 🔥</button>
       </section>
 
       <section class="arena-card" id="cMatchArena" style="display:none; text-align:center;">
         <div class="hud-badge" id="cHudRound">Ronda 1 · Batalla 1/3</div>
         <div class="steps" id="cSteps" aria-hidden="true"><i></i><i></i><i></i></div>
-        <p class="vs-prompt admin-only">¿Qué león se lleva el botín de este set?</p>
+        <p class="vs-prompt admin-only">¿Qué dragón se lleva el botín de este set?</p>
         <p class="vs-prompt public-only"><span class="live-dot"></span> En juego ahora</p>
 
         <div class="versus-colosseum">
           <span class="vs-chip">VS</span>
           <button class="gladiator-btn" id="g1">
-            <span class="lion-avatar">🦁</span>
+            <span class="lion-avatar">🐉</span>
             <span class="team-name" id="cName1">--</span>
             <span class="win-tag">🏆 Reclamar Corona</span>
           </button>
           <button class="gladiator-btn" id="g2">
-            <span class="lion-avatar">🦁</span>
+            <span class="lion-avatar">🐉</span>
             <span class="team-name" id="cName2">--</span>
             <span class="win-tag">🏆 Reclamar Corona</span>
           </button>
@@ -174,7 +143,7 @@
     </main>
 
     <footer>
-      <p class="footer-credits">🦁 APP de <span>Justin Luque</span> · Team Fuego</p>
+      <p class="footer-credits">🐉 APP de <span>Justin Luque</span> · IceFire</p>
     </footer>
   </div>
 
@@ -182,16 +151,7 @@
   <script>
   // Inicio de sesión anónimo: la app carga solo cuando Firebase ya dio permiso
   (function () {
-    firebase.initializeApp({
-  apiKey: "AIzaSyC5FKtlCWyec1AxAfwegrxcJyTlR7fLMiE",
-  authDomain: "team-fuego-voley.firebaseapp.com",
-  databaseURL: "https://team-fuego-voley-default-rtdb.firebaseio.com",
-  projectId: "team-fuego-voley",
-  storageBucket: "team-fuego-voley.firebasestorage.app",
-  messagingSenderId: "327602190796",
-  appId: "1:327602190796:web:651f3cc662eaa4942f0569",
-  measurementId: "G-NST7Q054NZ"
-});
+    firebase.initializeApp(window.ICEFIRE.firebase);
     var cargado = false;
     firebase.auth().onAuthStateChanged(function (u) {
       if (u) {

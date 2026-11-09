@@ -1,23 +1,14 @@
 /* ==========================================================================
    0. Firebase
    ========================================================================== */
-const firebaseConfig = {
-  apiKey: "AIzaSyC5FKtlCWyec1AxAfwegrxcJyTlR7fLMiE",
-  authDomain: "team-fuego-voley.firebaseapp.com",
-  databaseURL: "https://team-fuego-voley-default-rtdb.firebaseio.com",
-  projectId: "team-fuego-voley",
-  storageBucket: "team-fuego-voley.firebasestorage.app",
-  messagingSenderId: "327602190796",
-  appId: "1:327602190796:web:651f3cc662eaa4942f0569",
-  measurementId: "G-NST7Q054NZ"
-};
+const firebaseConfig = window.ICEFIRE.firebase;
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const colosseumRef = db.ref('marcador_colosseum');
 const soldiersRef = db.ref('marcador_refuerzos');
 const configRef = db.ref('marcador_refuerzos_config');
 
-const LINK_APP = 'https://luque20013.github.io/TEAM-FUEGO-APPS/'; // cámbialo si esta página tiene otro link
+const LINK_APP = new URL('./', location.href).href; // se arma solo con el link donde publiques la app
 const $ = (id) => document.getElementById(id);
 const num = (v, d) => { const n = parseFloat(v); return isNaN(n) ? d : n; };
 const money = (n) => Math.abs(n).toFixed(2);
@@ -122,12 +113,12 @@ function toast(msg) {
 let esAdmin = false;
 let adminNombre = '';
 try {
-  esAdmin = sessionStorage.getItem('fuegoAdmin') === '1';
-  adminNombre = sessionStorage.getItem('fuegoAdminNombre') || '';
+  esAdmin = sessionStorage.getItem('icefireAdmin') === '1';
+  adminNombre = sessionStorage.getItem('icefireAdminNombre') || '';
 } catch (e) {}
 
 // Cada admin entra con su propio PIN
-const ADMINS = { '1111': 'Angelo', '2222': 'Yulisa', '3333': 'Ronaldo', '4444': 'Justin' };
+const ADMINS = window.ICEFIRE.admins; // se editan en config.js
 
 function esPinValido(pin) {
   return Object.prototype.hasOwnProperty.call(ADMINS, pin);
@@ -153,8 +144,8 @@ function toggleAdmin() {
     toast(`👑 Hola, ${adminNombre}`);
   }
   try {
-    sessionStorage.setItem('fuegoAdmin', esAdmin ? '1' : '0');
-    sessionStorage.setItem('fuegoAdminNombre', adminNombre);
+    sessionStorage.setItem('icefireAdmin', esAdmin ? '1' : '0');
+    sessionStorage.setItem('icefireAdminNombre', adminNombre);
   } catch (e) {}
   aplicarModoAdmin();
 }
@@ -366,7 +357,7 @@ function compartirTablaWhatsApp() {
     .join('\n');
 
   abrirWhatsApp(
-`🔥🦁 *TEAM FUEGO · MARCADOR* 🦁🔥
+`❄️🔥 *ICEFIRE · MARCADOR* 🔥❄️
 🏐 Ronda ${st.cRoundNum} · Batalla ${st.cMatchStep}/3
 💰 Bolsa por partido: S/ ${st.cBet.toFixed(2)}
 
@@ -382,14 +373,14 @@ ${filas}
    5. Modo 2: Individual / refuerzos en vivo
    ========================================================================== */
 let soldiers = {};
-let fee = 3, lateFee = 2;
+let fee = 3, lateFee = window.ICEFIRE.multaTardanza;
 const NUM_GRUPOS = 6; // cantidad de grupos disponibles para elegir
 
 // Los montos se guardan en Firebase para que todos vean la misma liquidación
 configRef.on('value', (snapshot) => {
   const c = snapshot.val() || {};
   fee = num(c.fee, 3);
-  lateFee = num(c.lateFee, 2);
+  lateFee = num(c.lateFee, window.ICEFIRE.multaTardanza);
   if (document.activeElement !== $('pFee')) $('pFee').value = fee;
   if (document.activeElement !== $('pLateFee')) $('pLateFee').value = lateFee;
   $('pFeeInfo').textContent = `Set perdido: S/ ${fee.toFixed(2)} · Tardanza: S/ ${lateFee.toFixed(2)}`;
@@ -398,7 +389,7 @@ configRef.on('value', (snapshot) => {
 
 function guardarConfig() {
   if (!esAdmin) return;
-  configRef.set({ fee: num($('pFee').value, 3), lateFee: num($('pLateFee').value, 2) });
+  configRef.set({ fee: num($('pFee').value, 3), lateFee: num($('pLateFee').value, window.ICEFIRE.multaTardanza) });
 }
 $('pFee').addEventListener('change', guardarConfig);
 $('pLateFee').addEventListener('change', guardarConfig);
@@ -531,7 +522,7 @@ function refreshRoster() {
     const head = el('div', 'mercenary-header');
     const av = el('span', 'merc-av', (s.tag || '?').trim().charAt(0).toUpperCase());
     const meta = el('div', 'mercenary-meta');
-    meta.appendChild(el('b', '', `${numeroDe(id)}. 🦁 ${s.tag}`));
+    meta.appendChild(el('b', '', `${numeroDe(id)}. 🐉 ${s.tag}`));
     meta.appendChild(el('span', '', `${s.w} Ganados · ${s.l} Perdidos${s.late ? ' · ⚠️ Tardanza' : ''}`));
     const rm = el('button', 'btn-remove-player', '✕');
     rm.title = 'Eliminar'; rm.setAttribute('aria-label', 'Eliminar jugador');
@@ -600,13 +591,13 @@ function compartirRefuerzosWhatsApp() {
   }).join('\n');
 
   abrirWhatsApp(
-`⚔️🏐 *TEAM FUEGO · LIQUIDACIÓN INDIVIDUAL* 🔥
+`⚔️🏐 *ICEFIRE · LIQUIDACIÓN INDIVIDUAL* 🔥
 💰 Set perdido: S/ ${fee.toFixed(2)}
-⏰ Tardanza (después de 8:15 PM): S/ ${lateFee.toFixed(2)}
+⏰ Tardanza (${window.ICEFIRE.tardanzaGeneral()}): S/ ${lateFee.toFixed(2)}
 
 ${reporte}
 
-Quien debe, yapea al ganador o a un admin. 🦁
+Quien debe, yapea al ganador o a un admin. 🐉
 👉 ${LINK_APP}`);
 }
 

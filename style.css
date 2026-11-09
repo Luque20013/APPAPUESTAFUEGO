@@ -646,3 +646,6 @@ footer::before { content: ""; display: block; width: 60%; height: 1px; margin: 0
 .group-card .roster-group-title { margin-top: 0; }
 .group-names { margin: 0 0 .6rem; font-size: .8rem; color: var(--text-dim); }
 #groupPanel:empty { display: none; }
+
+/* Logo IceFire (imagen redonda) */
+img.lion { border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,190,80,.55); box-shadow: 0 0 28px rgba(255,90,20,.55), 0 0 60px rgba(120,160,255,.22); filter: none; }
