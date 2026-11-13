@@ -379,8 +379,9 @@ ${filas}
    ========================================================================== */
 const Q_KEYS = ['A', 'B', 'C', 'D'];
 const Q_COLOR = { A: '#ff5a1f', B: '#fbbf24', C: '#38bdf8', D: '#a78bfa' };
-// Orden de los 6 partidos: cada equipo juega 3 veces y nunca contra el mismo dos veces
-const Q_FIXTURES = [['A', 'B'], ['C', 'D'], ['A', 'C'], ['B', 'D'], ['A', 'D'], ['B', 'C']];
+// 3 rondas con 2 canchas a la vez: todos juegan en cada ronda y nunca repiten rival
+const Q_RONDAS = [[['A', 'B'], ['C', 'D']], [['A', 'C'], ['B', 'D']], [['A', 'D'], ['B', 'C']]];
+const Q_FIXTURES = [].concat(...Q_RONDAS); // partido i = ronda i/2, cancha i%2
 // ---------- Jugadores, posiciones y equipos (4 equipos) ----------
 let qPlayers = {}; // { id: { name, pos, team } }
 const Q_POS = Object.keys(window.ICEFIRE.posiciones);
@@ -486,16 +487,21 @@ function renderPool() {
   });
 }
 
-// En el partido en juego, se ven los jugadores de los dos equipos
+// En cada cancha se ven los jugadores de los dos equipos que juegan
 function renderLineups() {
-  const box = $('qLineups');
-  box.innerHTML = '';
-  if (!q || q.idx >= Q_FIXTURES.length) return;
-  Q_FIXTURES[q.idx].forEach((k) => {
-    const col = el('div', 'q-lineup');
-    col.style.setProperty('--tc', Q_COLOR[k]);
-    qPorEquipo(k).forEach((p) => col.appendChild(el('span', '', p.name + (p.pos ? ` · ${qAbrev(p.pos)}` : ''))));
-    box.appendChild(col);
+  [0, 1].forEach((c) => {
+    const box = $('qLU' + c);
+    if (!box) return;
+    box.innerHTML = '';
+    if (!q) return;
+    const ronda = qRondaDe(q.results);
+    if (ronda >= Q_RONDAS.length) return;
+    Q_FIXTURES[ronda * 2 + c].forEach((k) => {
+      const col = el('div', 'q-lineup');
+      col.style.setProperty('--tc', Q_COLOR[k]);
+      qPorEquipo(k).forEach((p) => col.appendChild(el('span', '', p.name + (p.pos ? ` · ${qAbrev(p.pos)}` : ''))));
+      box.appendChild(col);
+    });
   });
 }
 
@@ -603,12 +609,21 @@ ${bloques}
 }
 
 let q = null; // estado que viene de Firebase
-let qLastIdx = null;
+let qLastRonda = null;
+
+const qRes = (i) => ((q && q.results) || {})['m' + i];
+// Ronda en juego: la primera que todavía no tiene sus 2 partidos anotados (3 = terminó todo)
+function qRondaDe(results) {
+  for (let r = 0; r < Q_RONDAS.length; r++) {
+    if (!(results && results['m' + (2 * r)] && results['m' + (2 * r + 1)])) return r;
+  }
+  return Q_RONDAS.length;
+}
 
 cuatroRef.on('value', (snapshot) => {
   const d = snapshot.val();
   q = (d && d.started && d.roster) ? d : null;
-  const fin = !!q && q.idx >= Q_FIXTURES.length;
+  const fin = !!q && qRondaDe(q.results) >= Q_RONDAS.length;
   $('qWaiting').style.display = q ? 'none' : 'block';
   $('qSetup').style.display = q ? 'none' : 'block';
   $('qMatchArena').style.display = q && !fin ? 'block' : 'none';
@@ -625,15 +640,13 @@ function launchCuatro() {
   const names = ['qTeamA', 'qTeamB', 'qTeamC', 'qTeamD'].map((id, i) => $(id).value.trim() || `Equipo ${i + 1}`);
   const roster = {};
   Q_KEYS.forEach((k, i) => { roster[k] = { name: names[i], pj: 0, pg: 0, pp: 0, cash: 0 }; });
-  cuatroRef.set({ started: true, bet, per, roster, idx: 0 });
+  cuatroRef.set({ started: true, bet, per, roster });
 }
-
-const qNames = (keys) => keys.map((k) => q.roster[k].name).join(' y ');
 
 // Orden de la tabla: más ganados; si empatan, quién ganó entre los empatados; luego nombre
 function qOrdenados() {
   const arr = Object.entries(q.roster).map(([key, t]) => ({ ...t, key }));
-  const res = q.results || [];
+  const res = Object.values(q.results || {});
   const h2h = (x, grupo) => res.filter((r) => r.w === x.key && grupo.some((g) => g.key === r.l)).length;
   return arr.sort((x, y) => {
     if (y.pg !== x.pg) return y.pg - x.pg;
@@ -666,54 +679,52 @@ function qPagos() {
 }
 
 const qSigno = (n) => (n > 0 ? '+' : n < 0 ? '-' : '');
+const qPar = (i) => `${q.roster[Q_FIXTURES[i][0]].name} vs ${q.roster[Q_FIXTURES[i][1]].name}`;
 
 function renderCuatro() {
-  const total = Q_FIXTURES.length;
-  const fin = q.idx >= total;
+  const total = Q_RONDAS.length;
+  const ronda = qRondaDe(q.results);
+  const fin = ronda >= total;
   const per = q.per || 6;
 
   if (!fin) {
-    const [a, b] = Q_FIXTURES[q.idx];
-    $('qHud').textContent = `Partido ${q.idx + 1}/${total}`;
-    $('qName1').textContent = q.roster[a].name;
-    $('qName2').textContent = q.roster[b].name;
-    $('q1').style.setProperty('--tc', Q_COLOR[a]);
-    $('q2').style.setProperty('--tc', Q_COLOR[b]);
-
-    const descansan = Q_KEYS.filter((k) => k !== a && k !== b);
-    const rest = $('qRestPod');
-    rest.textContent = 'Descansan: ';
-    rest.appendChild(el('b', '', qNames(descansan)));
+    $('qHud').textContent = `Ronda ${ronda + 1}/${total}`;
+    for (let c = 0; c < 2; c++) {
+      const i = ronda * 2 + c;
+      const [a, b] = Q_FIXTURES[i];
+      const r = qRes(i);
+      [[a, 'a'], [b, 'b']].forEach(([k, lado]) => {
+        $(`qn${c}${lado}`).textContent = q.roster[k].name;
+        const btn = $(`qb${c}${lado}`);
+        btn.style.setProperty('--tc', Q_COLOR[k]);
+        btn.disabled = !!r;
+        btn.classList.toggle('q-won', !!r && r.w === k);
+      });
+      $('qs' + c).textContent = r ? `✅ Ganó ${q.roster[r.w].name}` : '⏳ Se está jugando';
+    }
 
     const next = $('qNextPod');
     next.textContent = 'Sigue: ';
-    if (q.idx + 1 < total) {
-      const [c, d] = Q_FIXTURES[q.idx + 1];
-      next.appendChild(el('b', '', `${q.roster[c].name} vs ${q.roster[d].name}`));
+    if (ronda + 1 < total) {
+      next.appendChild(el('b', '', `Ronda ${ronda + 2} · ${qPar((ronda + 1) * 2)}  |  ${qPar((ronda + 1) * 2 + 1)}`));
     } else {
-      next.appendChild(el('b', '', 'es el último partido'));
+      next.appendChild(el('b', '', 'es la última ronda'));
     }
 
     const steps = $('qSteps');
     steps.innerHTML = '';
-    for (let i = 0; i < total; i++) {
-      const dot = el('i', i < q.idx ? 'done' : (i === q.idx ? 'now' : ''));
-      steps.appendChild(dot);
-    }
+    for (let r = 0; r < total; r++) steps.appendChild(el('i', r < ronda ? 'done' : (r === ronda ? 'now' : '')));
     $('qBtnUndo').disabled = !(q.historial && q.historial.length);
 
-    if (qLastIdx !== null && qLastIdx !== q.idx && !reduceMotion) {
+    if (qLastRonda !== null && qLastRonda !== ronda && !reduceMotion) {
       const card = $('qMatchArena');
       card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse');
     }
-    qLastIdx = q.idx;
+    qLastRonda = ronda;
   }
 
   const orden = qOrdenados();
-  if (fin) {
-    const top = orden[0];
-    $('qChamp').textContent = `🏆 Campeón: ${top.name} (${top.pg} ganados)`;
-  }
+  if (fin) $('qChamp').textContent = `🏆 Campeón: ${orden[0].name} (${orden[0].pg} ganados)`;
 
   const tbody = $('qTableBody');
   tbody.innerHTML = '';
@@ -743,41 +754,51 @@ function renderCuatro() {
 
   const fix = $('qFix');
   fix.innerHTML = '';
-  const res = q.results || [];
   Q_FIXTURES.forEach(([a, b], i) => {
     const li = el('li');
-    const r = res[i];
+    const etiqueta = `R${Math.floor(i / 2) + 1} · Cancha ${(i % 2) + 1}: `;
+    const r = qRes(i);
     if (r) {
-      li.append(`✅ P${i + 1}: `, el('b', '', q.roster[r.w].name), ' venció a ', el('b', '', q.roster[r.l].name));
-    } else if (i === q.idx) {
-      li.append(`▶️ P${i + 1}: `, el('b', '', `${q.roster[a].name} vs ${q.roster[b].name}`), ' (en juego)');
+      li.append(`✅ ${etiqueta}`, el('b', '', q.roster[r.w].name), ' venció a ', el('b', '', q.roster[r.l].name));
+    } else if (Math.floor(i / 2) === ronda) {
+      li.append(`▶️ ${etiqueta}`, el('b', '', qPar(i)), ' (en juego)');
     } else {
-      li.append(`⏳ P${i + 1}: ${q.roster[a].name} vs ${q.roster[b].name}`);
+      li.append(`⏳ ${etiqueta}${qPar(i)}`);
     }
     fix.appendChild(li);
   });
+  renderLineups();
 }
 
-$('q1').addEventListener('click', () => { if (q && q.idx < Q_FIXTURES.length) victoriaCuatro(Q_FIXTURES[q.idx][0]); });
-$('q2').addEventListener('click', () => { if (q && q.idx < Q_FIXTURES.length) victoriaCuatro(Q_FIXTURES[q.idx][1]); });
+// Cada botón corresponde a una cancha y un lado: el partido es el de la ronda en juego
+[['qb0a', 0, 0], ['qb0b', 0, 1], ['qb1a', 1, 0], ['qb1b', 1, 1]].forEach(([id, cancha, lado]) => {
+  $(id).addEventListener('click', () => {
+    if (!q) return;
+    const ronda = qRondaDe(q.results);
+    if (ronda >= Q_RONDAS.length) return;
+    const i = ronda * 2 + cancha;
+    victoriaCuatro(i, Q_FIXTURES[i][lado]);
+  });
+});
 
-function victoriaCuatro(winner) {
-  if (!esAdmin || !q || q.idx >= Q_FIXTURES.length) return;
-  const idx = q.idx;
-  const [a, b] = Q_FIXTURES[idx];
+function victoriaCuatro(i, winner) {
+  if (!esAdmin || !q || qRes(i)) return;
+  const ronda = Math.floor(i / 2);
+  if (ronda !== qRondaDe(q.results)) return;
+  const [a, b] = Q_FIXTURES[i];
   const loser = winner === a ? b : a;
   const nombre = q.roster[winner].name;
 
   // La transacción evita dobles toques o que dos admins registren el mismo partido
   cuatroRef.transaction((cur) => {
-    if (!cur || !cur.started || cur.idx !== idx) return;
+    if (!cur || !cur.started) return;
+    if ((cur.results && cur.results['m' + i]) || qRondaDe(cur.results) !== ronda) return;
     const { historial, ...previo } = cur;
     const nuevo = JSON.parse(JSON.stringify(previo));
     const W = nuevo.roster[winner], L = nuevo.roster[loser];
     W.cash += nuevo.bet; L.cash -= nuevo.bet;
     W.pj += 1; L.pj += 1; W.pg += 1; L.pp += 1;
-    nuevo.results = [...(previo.results || []), { w: winner, l: loser }];
-    nuevo.idx = idx + 1;
+    nuevo.results = { ...(previo.results || {}), ['m' + i]: { w: winner, l: loser } };
     nuevo.historial = [...(historial || []), previo].slice(-10);
     return nuevo;
   }, (error, committed) => {
@@ -811,7 +832,8 @@ function resetCuatro() {
 function compartirCuatroWhatsApp() {
   if (!esAdmin || !q) return;
   const per = q.per || 6;
-  const fin = q.idx >= Q_FIXTURES.length;
+  const ronda = qRondaDe(q.results);
+  const fin = ronda >= Q_RONDAS.length;
   const medallas = ['🥇', '🥈', '🥉', '4️⃣'];
   const filas = qOrdenados()
     .map((t, i) => `${medallas[i]} *${t.name}* · ${t.pg}G/${t.pp}P ➔ *${estadoEquipo(t)}* (c/u ${qSigno(t.cash)}S/ ${money(t.cash / per)})`)
@@ -820,13 +842,15 @@ function compartirCuatroWhatsApp() {
   const textoPagos = pagos.length
     ? pagos.map((p) => `• ${p.de} ➔ ${p.a}: S/ ${money(p.monto)} (c/u S/ ${money(p.monto / per)})`).join('\n')
     : 'Sin cuentas pendientes.';
-  const estado = fin
-    ? '✅ Todos los partidos jugados'
-    : `▶️ Ahora: *${q.roster[Q_FIXTURES[q.idx][0]].name}* vs *${q.roster[Q_FIXTURES[q.idx][1]].name}* (partido ${q.idx + 1}/${Q_FIXTURES.length})`;
+  let estado = '✅ Terminaron las 3 rondas';
+  if (!fin) {
+    const linea = (c) => { const i = ronda * 2 + c; const r = qRes(i); return `🏟️ Cancha ${c + 1}: ${qPar(i)}${r ? ` (✅ ganó ${q.roster[r.w].name})` : ''}`; };
+    estado = `▶️ *Ronda ${ronda + 1}/${Q_RONDAS.length}*\n${linea(0)}\n${linea(1)}`;
+  }
 
   abrirWhatsApp(
 `❄️🔥 *ICEFIRE · 4 EQUIPOS* 🔥❄️
-🏐 Todos contra todos
+🏐 Todos contra todos · 2 canchas
 💰 Bolsa por partido: S/ ${q.bet.toFixed(2)} · ${per} jugadores por equipo
 
 ${filas}

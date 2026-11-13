@@ -105,7 +105,7 @@
 
       <section class="arena-card public-only" id="qWaiting" style="text-align:center;">
         <span class="field-tag">Marcador en vivo · 4 equipos</span>
-        <p class="vs-prompt">Todavía no arranca. Cuando un admin lo inicie, verás aquí los partidos y las cuentas en tiempo real.</p>
+        <p class="vs-prompt">Todavía no arranca. Cuando un admin lo inicie, verás aquí los partidos de las 2 canchas y las cuentas en tiempo real.</p>
       </section>
 
       <section class="arena-card admin-only" id="qSetup">
@@ -149,33 +149,55 @@
       </details>
 
       <section class="arena-card" id="qMatchArena" style="display:none; text-align:center;">
-        <div class="hud-badge" id="qHud">Partido 1/6</div>
+        <div class="hud-badge" id="qHud">Ronda 1/3</div>
         <div class="steps" id="qSteps" aria-hidden="true"></div>
-        <p class="vs-prompt admin-only">¿Quién se lleva el botín de este partido?</p>
-        <p class="vs-prompt public-only"><span class="live-dot"></span> En juego ahora</p>
+        <p class="vs-prompt admin-only">Toca el equipo que ganó en cada cancha</p>
+        <p class="vs-prompt public-only"><span class="live-dot"></span> En juego ahora en las 2 canchas</p>
 
-        <div class="versus-colosseum">
-          <span class="vs-chip">VS</span>
-          <button class="gladiator-btn" id="q1">
-            <span class="lion-avatar">🐉</span>
-            <span class="team-name" id="qName1">--</span>
-            <span class="win-tag">🏆 Ganó este</span>
-          </button>
-          <button class="gladiator-btn" id="q2">
-            <span class="lion-avatar">🐉</span>
-            <span class="team-name" id="qName2">--</span>
-            <span class="win-tag">🏆 Ganó este</span>
-          </button>
+        <div class="q-court">
+          <div class="q-court-title">🏟️ CANCHA 1</div>
+          <div class="versus-colosseum">
+            <span class="vs-chip">VS</span>
+            <button class="gladiator-btn" id="qb0a">
+              <span class="lion-avatar">🐉</span>
+              <span class="team-name" id="qn0a">--</span>
+              <span class="win-tag">🏆 Ganó este</span>
+            </button>
+            <button class="gladiator-btn" id="qb0b">
+              <span class="lion-avatar">🐉</span>
+              <span class="team-name" id="qn0b">--</span>
+              <span class="win-tag">🏆 Ganó este</span>
+            </button>
+          </div>
+          <div class="q-status" id="qs0"></div>
+          <div class="q-lineups" id="qLU0"></div>
         </div>
 
-        <div class="q-lineups" id="qLineups"></div>
-        <div class="resting-pod" id="qRestPod">Descansan: <b>--</b></div>
-        <div class="resting-pod" id="qNextPod" style="margin-top:.5rem;">Sigue: <b>--</b></div>
+        <div class="q-court">
+          <div class="q-court-title">🏟️ CANCHA 2</div>
+          <div class="versus-colosseum">
+            <span class="vs-chip">VS</span>
+            <button class="gladiator-btn" id="qb1a">
+              <span class="lion-avatar">🐉</span>
+              <span class="team-name" id="qn1a">--</span>
+              <span class="win-tag">🏆 Ganó este</span>
+            </button>
+            <button class="gladiator-btn" id="qb1b">
+              <span class="lion-avatar">🐉</span>
+              <span class="team-name" id="qn1b">--</span>
+              <span class="win-tag">🏆 Ganó este</span>
+            </button>
+          </div>
+          <div class="q-status" id="qs1"></div>
+          <div class="q-lineups" id="qLU1"></div>
+        </div>
+
+        <div class="resting-pod" id="qNextPod">Sigue: <b>--</b></div>
         <button class="btn-undo admin-only" id="qBtnUndo" onclick="deshacerCuatro()">↩️ Deshacer último partido</button>
       </section>
 
       <section class="arena-card" id="qDone" style="display:none; text-align:center;">
-        <div class="hud-badge">Terminó el todos contra todos</div>
+        <div class="hud-badge">Terminaron las 3 rondas</div>
         <p class="vs-prompt" id="qChamp" style="margin-top:.8rem;"></p>
         <button class="btn-undo admin-only" onclick="deshacerCuatro()">↩️ Deshacer último partido</button>
       </section>

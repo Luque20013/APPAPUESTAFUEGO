@@ -681,3 +681,10 @@ img.lion { border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,190
 .q-der { display: inline-flex; align-items: center; gap: .35rem; }
 .q-nv { font-size: .68rem; font-weight: 800; color: #fbbf24; }
 .q-row { grid-template-columns: 1fr 66px 1fr 34px; }
+
+/* 2 canchas a la vez */
+.q-court { margin: .7rem 0 1rem; padding: .75rem .6rem; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; background: rgba(255,255,255,.03); }
+.q-court-title { font-family: 'Teko', sans-serif; font-size: 1.2rem; letter-spacing: 2px; color: var(--gold-lion); margin-bottom: .3rem; }
+.q-status { font-size: .8rem; font-weight: 700; color: var(--text-dim); margin-top: .5rem; }
+.gladiator-btn:disabled { opacity: .55; cursor: default; }
+.gladiator-btn.q-won { opacity: 1; outline: 2px solid var(--gold-lion); }
