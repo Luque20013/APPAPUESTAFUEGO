@@ -1,0 +1,188 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Ayudas ----------
+    function signedIn() { return request.auth != null; }
+    function verified() { return signedIn() && request.auth.token.email_verified == true; }
+    function meDoc() { return /databases/$(database)/documents/players/$(request.auth.uid); }
+
+    // Dueño: correo VERIFICADO de la lista (igual que ADMIN_EMAILS en la página)
+    function isOwner() {
+      return verified()
+        && request.auth.token.email.lower() in ['lisha2001xd@gmail.com'];
+    }
+    // Admin: el dueño, o quien tenga isAdmin en su perfil
+    function isAdmin() {
+      return isOwner()
+        || (signedIn() && exists(meDoc()) && get(meDoc()).data.get('isAdmin', false) == true);
+    }
+    function onlyChanges(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    // ---------- Jugadores ----------
+    match /players/{uid} {
+      allow read: if signedIn();
+
+      // Cada persona crea SOLO su perfil, sin admin, con estadísticas en cero
+      // y con los mismos límites de tamaño que al editar
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.isAdmin == false
+        && request.resource.data.matchesWon == 0
+        && request.resource.data.matchesLost == 0
+        && request.resource.data.setsWon == 0
+        && request.resource.data.mvpCount == 0
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() <= 30
+        && request.resource.data.get('phone', '') is string
+        && request.resource.data.get('phone', '').size() <= 30
+        && (!('photo' in request.resource.data)
+            || (request.resource.data.photo is string && request.resource.data.photo.size() < 200000));
+
+      allow update: if signedIn() && (
+        // Tú solo puedes cambiar apodo, avatar, celular y foto de TU perfil
+        (request.auth.uid == uid
+          && onlyChanges(['nickname', 'avatar', 'phone', 'photo'])
+          && request.resource.data.nickname.size() <= 30
+          && request.resource.data.get('phone', '').size() <= 30
+          && (!('photo' in request.resource.data) || request.resource.data.photo.size() < 200000))
+        // Un admin cambia habilidades, posición, admin y estadísticas (registrar partido)
+        || (isAdmin()
+          && onlyChanges(['skills', 'position', 'isAdmin', 'matchesWon', 'matchesLost', 'setsWon', 'mvpCount']))
+      );
+
+      allow delete: if false;
+    }
+
+    // ---------- Muro (publicaciones) ----------
+    match /posts/{id} {
+      function likeOk() {
+        let a = request.resource.data.likes.toSet();
+        let b = resource.data.likes.toSet();
+        return onlyChanges(['likes'])
+          && a.difference(b).hasOnly([request.auth.uid])
+          && b.difference(a).hasOnly([request.auth.uid]);
+      }
+      // Un comentario nuevo al final, firmado con TU id y con correo verificado
+      function commentAddOk() {
+        let n = request.resource.data.comments;
+        let o = resource.data.comments;
+        return verified()
+          && onlyChanges(['comments'])
+          && n.size() == o.size() + 1
+          && n[n.size() - 1].userId == request.auth.uid
+          && n[n.size() - 1].text is string
+          && n[n.size() - 1].text.size() <= 500;
+      }
+      // Moderación: un admin puede quitar UN comentario (los demás quedan iguales)
+      function commentRemoveOk() {
+        let n = request.resource.data.comments;
+        let o = resource.data.comments;
+        return isAdmin()
+          && onlyChanges(['comments'])
+          && n.size() == o.size() - 1
+          && o.toSet().hasAll(n.toSet());
+      }
+
+      allow read: if signedIn();
+
+      // Publicas como tú (con correo verificado); solo un admin publica como 'bot'
+      allow create: if verified()
+        && (request.resource.data.authorId == request.auth.uid
+            || (isAdmin() && request.resource.data.authorId == 'bot'))
+        && request.resource.data.content is string
+        && request.resource.data.content.size() <= 2000
+        && request.resource.data.likes.size() == 0
+        && request.resource.data.comments.size() == 0
+        && (!('image' in request.resource.data)
+            || (request.resource.data.image is string && request.resource.data.image.size() < 700000));
+
+      // Solo TU like, UN comentario tuyo, o un admin moderando comentarios
+      allow update: if signedIn() && (likeOk() || commentAddOk() || commentRemoveOk());
+
+      // Borra: un admin, el autor, o el dueño del muro donde se publicó
+      allow delete: if signedIn()
+        && (isAdmin() || resource.data.authorId == request.auth.uid
+            || resource.data.get('wallOwner', '') == request.auth.uid);
+    }
+
+    // ---------- Pichangas ----------
+    // OJO: 'going' incluye la lista de espera, por eso NO se limita al cupo (cap);
+    // solo se pone un tope razonable.
+    match /events/{id} {
+      function goingOk() {
+        let a = request.resource.data.going.toSet();
+        let b = resource.data.going.toSet();
+        return request.resource.data.going.size() <= 200
+          && a.difference(b).hasOnly([request.auth.uid])
+          && b.difference(a).hasOnly([request.auth.uid]);
+      }
+      // Un jugador solo puede avisar SU pago ('pending'). Nunca marcarlo 'ok' ni tocar el de otros.
+      function paidOk() {
+        let n = request.resource.data.paid;
+        let o = resource.data.paid;
+        let u = request.auth.uid;
+        return n.diff(o).affectedKeys().hasOnly([u])
+          && (n.diff(o).affectedKeys().size() == 0
+              || ((!(u in o) || o[u] != 'ok') && (u in n) && n[u] == 'pending'));
+      }
+
+      allow read: if signedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin()
+        || (signedIn() && onlyChanges(['going', 'paid']) && goingOk() && paidOk());
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Partidos registrados ----------
+    match /matches/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- Triangular en vivo (el que gana se queda) ----------
+    match /triangulars/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- Marcador (4 equipos e individual): SOLO admins ----------
+    match /marcador/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------- Asistencia del mes (un documento por mes: 2026-11) ----------
+    match /attendance/{month} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- Pedidos de polos ----------
+    match /polos/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data['size'] in ['S', 'M', 'L', 'XL']
+        && request.resource.data.cut in ['Hombre', 'Mujer']
+        && request.resource.data.num is number
+        && request.resource.data.num >= 0 && request.resource.data.num <= 99
+        && request.resource.data.name is string && request.resource.data.name.size() <= 14;
+      allow delete: if signedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    // ---------- Mensajes privados: solo los dos participantes pueden leerlos ----------
+    match /messages/{id} {
+      allow read: if signedIn() && request.auth.uid in resource.data.participants;
+      allow create: if verified()
+        && request.resource.data.from == request.auth.uid
+        && request.resource.data.participants.size() == 2
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.to in request.resource.data.participants
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 1000
+        && (request.resource.data.text.size() > 0 || 'image' in request.resource.data)
+        && (!('image' in request.resource.data)
+            || (request.resource.data.image is string && request.resource.data.image.size() < 700000));
+    }
+  }
+}
