@@ -34,8 +34,9 @@
     </header>
 
     <nav class="tab-matrix">
-      <button class="tab-nav active" id="btnTab1" onclick="switchArenaMode('colosseum')">🐉 3 Equipos (Ronda)</button>
-      <button class="tab-nav" id="btnTab2" onclick="switchArenaMode('headhunt')">⚔️ Por Cabeza (Individual)</button>
+      <button class="tab-nav active" id="btnTab1" onclick="switchArenaMode('colosseum')">🐉 3 Equipos</button>
+      <button class="tab-nav" id="btnTab3" onclick="switchArenaMode('cuatro')">🏐 4 Equipos</button>
+      <button class="tab-nav" id="btnTab2" onclick="switchArenaMode('headhunt')">⚔️ Individual</button>
     </nav>
 
     <!-- MODO 1: 3 EQUIPOS -->
@@ -96,6 +97,113 @@
         <ul class="log-list" id="cLog"></ul>
 
         <button class="btn-wa-share admin-only" onclick="compartirTablaWhatsApp()">📲 Compartir marcador por WhatsApp</button>
+      </section>
+    </main>
+
+    <!-- MODO 3: 4 EQUIPOS, TODOS CONTRA TODOS (6 partidos) -->
+    <main class="screen" id="screenCuatro">
+
+      <section class="arena-card public-only" id="qWaiting" style="text-align:center;">
+        <span class="field-tag">Marcador en vivo · 4 equipos</span>
+        <p class="vs-prompt">Todavía no arranca. Cuando un admin lo inicie, verás aquí los partidos y las cuentas en tiempo real.</p>
+      </section>
+
+      <section class="arena-card admin-only" id="qSetup">
+        <div class="headhunt-config-grid">
+          <div>
+            <span class="field-tag">Bolsa por partido (S/)</span>
+            <input type="number" id="qBetVal" value="20" min="1" step="0.5" />
+          </div>
+          <div>
+            <span class="field-tag">Jugadores por equipo</span>
+            <input type="number" id="qPerTeam" value="6" min="1" step="1" />
+          </div>
+        </div>
+        <span class="field-tag">Nombres de los 4 equipos</span>
+        <input type="text" id="qTeamA" maxlength="24" oninput="renderEquipos()" placeholder="Equipo 1 (ej. 🔥 FUEGO)" />
+        <input type="text" id="qTeamB" maxlength="24" oninput="renderEquipos()" placeholder="Equipo 2 (ej. ❄️ HIELO)" />
+        <input type="text" id="qTeamC" maxlength="24" oninput="renderEquipos()" placeholder="Equipo 3 (ej. ⚡ TRUENO)" />
+        <input type="text" id="qTeamD" maxlength="24" oninput="renderEquipos()" placeholder="Equipo 4 (ej. 🌪️ TORMENTA)" />
+        <button class="btn-epic" onclick="launchCuatro()">COMENZAR 🔥</button>
+      </section>
+
+      <details class="arena-card admin-only" id="qAdminPlantel">
+        <summary class="field-tag" style="cursor:pointer;">👥 Jugadores, posiciones y equipos</summary>
+
+        <span class="field-tag" style="margin-top:.9rem;">Pegar la lista de WhatsApp</span>
+        <textarea id="qPaste" rows="4" placeholder="Pega aquí la lista (1️⃣ 🔥 Yuli, 2️⃣ ❄️ Justin...) o un nombre por línea"></textarea>
+        <button class="btn-epic" onclick="cargarNombres()">➕ Cargar nombres</button>
+
+        <div style="display:flex; gap:.5rem; margin-top:.8rem;">
+          <input type="text" id="qNewName" maxlength="24" placeholder="O agrega uno a mano" style="margin-bottom:0;" />
+          <button class="btn-epic" style="width:auto; padding:.75rem 1.3rem; font-size:1.1rem;" onclick="agregarJugador()" aria-label="Agregar jugador">+</button>
+        </div>
+
+        <div class="q-actions">
+          <button class="q-btn" onclick="repartirEquipos()">🎲 Repartir en 4 equipos</button>
+          <button class="q-btn" onclick="limpiarEquipos()">↺ Sacar de los equipos</button>
+          <button class="q-btn" onclick="vaciarJugadores()">🗑️ Vaciar jugadores</button>
+        </div>
+        <p class="fee-info">Pon la posición y el nivel (★1 a ★5) de cada uno y reparte: cada equipo queda del mismo tamaño, con posiciones parecidas y nivel parejo. Sin nivel cuenta como ★3. También puedes mover a cualquiera a mano.</p>
+        <div id="qPool"></div>
+      </details>
+
+      <section class="arena-card" id="qMatchArena" style="display:none; text-align:center;">
+        <div class="hud-badge" id="qHud">Partido 1/6</div>
+        <div class="steps" id="qSteps" aria-hidden="true"></div>
+        <p class="vs-prompt admin-only">¿Quién se lleva el botín de este partido?</p>
+        <p class="vs-prompt public-only"><span class="live-dot"></span> En juego ahora</p>
+
+        <div class="versus-colosseum">
+          <span class="vs-chip">VS</span>
+          <button class="gladiator-btn" id="q1">
+            <span class="lion-avatar">🐉</span>
+            <span class="team-name" id="qName1">--</span>
+            <span class="win-tag">🏆 Ganó este</span>
+          </button>
+          <button class="gladiator-btn" id="q2">
+            <span class="lion-avatar">🐉</span>
+            <span class="team-name" id="qName2">--</span>
+            <span class="win-tag">🏆 Ganó este</span>
+          </button>
+        </div>
+
+        <div class="q-lineups" id="qLineups"></div>
+        <div class="resting-pod" id="qRestPod">Descansan: <b>--</b></div>
+        <div class="resting-pod" id="qNextPod" style="margin-top:.5rem;">Sigue: <b>--</b></div>
+        <button class="btn-undo admin-only" id="qBtnUndo" onclick="deshacerCuatro()">↩️ Deshacer último partido</button>
+      </section>
+
+      <section class="arena-card" id="qDone" style="display:none; text-align:center;">
+        <div class="hud-badge">Terminó el todos contra todos</div>
+        <p class="vs-prompt" id="qChamp" style="margin-top:.8rem;"></p>
+        <button class="btn-undo admin-only" onclick="deshacerCuatro()">↩️ Deshacer último partido</button>
+      </section>
+
+      <section class="arena-card" id="qStandings" style="display:none;">
+        <div class="section-top">
+          <span class="field-tag">Tabla de posiciones</span>
+          <button class="btn-reset admin-only" onclick="resetCuatro()">🔄 Reiniciar todo</button>
+        </div>
+        <table class="war-table">
+          <thead>
+            <tr><th>Equipo</th><th>PJ</th><th>PG</th><th>PP</th><th style="text-align:right;">Bolsa (S/)</th></tr>
+          </thead>
+          <tbody id="qTableBody"></tbody>
+        </table>
+
+        <span class="field-tag" style="margin-top:1.1rem;">💸 Quién le paga a quién</span>
+        <ul class="log-list" id="qPays"></ul>
+
+        <span class="field-tag" style="margin-top:1.1rem;">Partidos</span>
+        <ul class="log-list" id="qFix"></ul>
+
+        <button class="btn-wa-share admin-only" onclick="compartirCuatroWhatsApp()">📲 Compartir marcador y cuentas por WhatsApp</button>
+      </section>
+      <section class="arena-card" id="qTeamsView" style="display:none;">
+        <span class="field-tag">Equipos de hoy</span>
+        <div class="q-teams" id="qTeams"></div>
+        <button class="btn-wa-share admin-only" onclick="compartirEquiposWhatsApp()">📲 Compartir equipos por WhatsApp</button>
       </section>
     </main>
 
