@@ -1,6 +1,6 @@
 # IceFire · Lista y Marcador (app aparte)
 
-- `/` → **Marcador**: triangular con apuesta + modo individual (penas por set y liquidación).
+- `/` → **Marcador** con 3 pestañas: **3 Equipos** (ronda con apuesta), **4 Equipos** (todos contra todos, 6 partidos, con cuentas y quién le paga a quién) e **Individual** (penas por set y liquidación).
 - `/lista/` → **Lista**: cupos, posición fija, pago por Yape con check de los admins, WhatsApp.
 
 Usa la misma base de datos Firebase de siempre. No hay que activar ni crear nada en Firebase.

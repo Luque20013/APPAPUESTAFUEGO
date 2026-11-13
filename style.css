@@ -649,3 +649,35 @@ footer::before { content: ""; display: block; width: 60%; height: 1px; margin: 0
 
 /* Logo IceFire (imagen redonda) */
 img.lion { border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,190,80,.55); box-shadow: 0 0 28px rgba(255,90,20,.55), 0 0 60px rgba(120,160,255,.22); filter: none; }
+
+/* 3 pestañas */
+.tab-matrix { grid-template-columns: repeat(3, 1fr); }
+.tab-nav { font-size: .72rem; padding: .85rem .15rem; }
+/* 4 equipos */
+#qSteps i { width: 26px; }
+.war-table td small { display: block; font-size: .66rem; opacity: .75; font-weight: 600; }
+
+/* Plantel de los 4 equipos */
+.q-teams { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .6rem; }
+.q-team { --tc: #888; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-top: 4px solid var(--tc); border-radius: 14px; padding: .6rem .7rem .45rem; }
+.q-team h4 { font-family: 'Teko', sans-serif; font-size: 1.2rem; letter-spacing: 1px; line-height: 1.1; color: var(--tc); margin-bottom: .3rem; word-break: break-word; }
+.q-pl { display: flex; justify-content: space-between; align-items: center; gap: .4rem; font-size: .82rem; padding: .3rem 0; border-top: 1px solid rgba(255,255,255,.06); }
+.q-pos { --pc: #999; font-size: .6rem; font-weight: 800; letter-spacing: .5px; padding: .08rem .42rem; border-radius: 999px; color: var(--pc); border: 1px solid var(--pc); }
+.q-empty { font-size: .75rem; color: var(--text-dim); }
+.q-lineups { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: .8rem 0 .6rem; text-align: left; }
+.q-lineup { --tc: #888; border-left: 3px solid var(--tc); padding-left: .55rem; display: flex; flex-direction: column; gap: .18rem; font-size: .76rem; color: var(--text-dim); }
+#qAdminPlantel > summary { list-style: none; }
+#qAdminPlantel > summary::-webkit-details-marker { display: none; }
+#qAdminPlantel select, #qAdminPlantel textarea { background: rgba(0,0,0,.4); color: inherit; border: 1px solid rgba(255,255,255,.15); border-radius: 10px; font: inherit; font-size: .78rem; width: 100%; padding: .5rem .35rem; }
+#qAdminPlantel textarea { padding: .6rem; font-size: .85rem; margin-bottom: .5rem; resize: vertical; }
+.q-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin: .9rem 0 .4rem; }
+.q-btn { flex: 1 1 auto; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15); color: #fff; border-radius: 10px; padding: .6rem .7rem; font-weight: 800; font-size: .74rem; cursor: pointer; }
+.q-btn:first-child { background: linear-gradient(135deg, #ff5a14, #a01c10); border-color: transparent; }
+.q-row { display: grid; grid-template-columns: 1fr 1fr 34px; gap: .35rem; align-items: center; padding: .55rem 0; border-top: 1px solid rgba(255,255,255,.06); }
+.q-row b { grid-column: 1 / -1; font-size: .86rem; }
+.q-del { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.4); color: #fca5a5; border-radius: 8px; height: 34px; cursor: pointer; }
+
+.q-prom { font-family: 'Plus Jakarta Sans', sans-serif; font-size: .62rem; font-weight: 700; letter-spacing: 0; color: var(--text-dim); }
+.q-der { display: inline-flex; align-items: center; gap: .35rem; }
+.q-nv { font-size: .68rem; font-weight: 800; color: #fbbf24; }
+.q-row { grid-template-columns: 1fr 66px 1fr 34px; }
